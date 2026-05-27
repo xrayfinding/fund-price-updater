@@ -1,0 +1,32 @@
+name: 基金实时单价每日更新
+
+on:
+  schedule:
+    # 北京时间 17:00 = UTC 09:00
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  update-fund-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 执行基金价格更新
+        env:
+          TENCENT_DOCS_CLIENT_ID: ${{ secrets.TENCENT_DOCS_CLIENT_ID }}
+          TENCENT_DOCS_CLIENT_SECRET: ${{ secrets.TENCENT_DOCS_CLIENT_SECRET }}
+          TENCENT_DOCS_REFRESH_TOKEN: ${{ secrets.TENCENT_DOCS_REFRESH_TOKEN }}
+        run: python fund_price_updater.py
